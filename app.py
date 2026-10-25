@@ -27,12 +27,6 @@ def db_test():
         return jsonify({'status': 'error', 'error': str(e)}), 500
 
 
-@app.route('/debug-env')
-def debug_env():
-    """Inspect request headers sent by Vercel (safe string keys only, no secrets)."""
-    headers = {k: str(v) for k, v in request.environ.items() if k.startswith(('HTTP_', 'REQUEST_', 'RAW_', 'PATH', 'SCRIPT_')) and 'SECRET' not in k and 'KEY' not in k and 'TOKEN' not in k and 'AUTH' not in k}
-    return jsonify(headers)
-
 
 
 def insert_user(name, email, hashed_password, contact, role='student'):

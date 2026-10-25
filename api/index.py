@@ -7,6 +7,7 @@ root_dir = os.path.dirname(current_dir)
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
+from urllib.parse import parse_qs, urlencode
 from werkzeug.middleware.proxy_fix import ProxyFix
 from app import app
 
@@ -19,22 +20,35 @@ class VercelPathFix:
     def __call__(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
 
-        # Check if incoming path was rewritten to /api/index or /api/index.py
-        # Vercel supplies original request info in headers like:
-        # HTTP_X_FORWARDED_URI, HTTP_X_MATCHED_PATH, RAW_URI, REQUEST_URI
+        # 1. Check if Vercel passed original path via __vercel_route query param
+        qs = environ.get('QUERY_STRING', '')
+        if '__vercel_route' in qs:
+            params = parse_qs(qs, keep_blank_values=True)
+            route_vals = params.pop('__vercel_route', None)
+            if route_vals and route_vals[0]:
+                route = route_vals[0]
+                if not route.startswith('/'):
+                    route = '/' + route
+                if len(route) > 1 and route.endswith('/'):
+                    route = route.rstrip('/')
+            else:
+                route = '/'
+            # Reconstruct clean QUERY_STRING without internal param
+            environ['QUERY_STRING'] = urlencode(params, doseq=True)
+            environ['PATH_INFO'] = route
+            return self.wsgi_app(environ, start_response)
+
+        # 2. Check if Vercel proxy headers passed original request path
         forwarded = (
             environ.get('HTTP_X_FORWARDED_URI') or
-            environ.get('HTTP_X_MATCHED_PATH') or
             environ.get('RAW_URI') or
             environ.get('REQUEST_URI')
         )
-
-        if path_info in ('/api/index', '/api/index.py', '/api', '/api/'):
-            if forwarded and forwarded not in ('/api/index', '/api/index.py', '/api', '/api/'):
-                clean_path = forwarded.split('?')[0]
-                environ['PATH_INFO'] = clean_path if clean_path else '/'
-            else:
-                environ['PATH_INFO'] = '/'
+        if forwarded and forwarded not in ('/api/index', '/api/index.py', '/api', '/api/'):
+            clean_path = forwarded.split('?')[0]
+            environ['PATH_INFO'] = clean_path if clean_path else '/'
+        elif path_info in ('/api/index', '/api/index.py', '/api', '/api/'):
+            environ['PATH_INFO'] = '/'
         elif path_info.startswith('/api/index/'):
             environ['PATH_INFO'] = path_info[len('/api/index'):] or '/'
         elif path_info.startswith('/api/index.py/'):
