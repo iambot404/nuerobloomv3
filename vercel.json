@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/:path*",
-      "destination": "/api/index?__vercel_route=/:path*"
+      "destination": "/api/index?__vercel_route=:path*"
     }
   ]
 }

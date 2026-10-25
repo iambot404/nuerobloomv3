@@ -25,7 +25,7 @@ class VercelPathFix:
         if '__vercel_route' in qs:
             params = parse_qs(qs, keep_blank_values=True)
             route_vals = params.pop('__vercel_route', None)
-            if route_vals and route_vals[0]:
+            if route_vals and route_vals[0] and route_vals[0] not in (':path*', '/:path*'):
                 route = route_vals[0]
                 if not route.startswith('/'):
                     route = '/' + route
