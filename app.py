@@ -414,6 +414,17 @@ def favicon():
 @app.route('/api/index')
 @app.route('/api/index.py')
 def home():
+    if request.args.get('debug') == '1':
+        return jsonify({
+            'path': request.path,
+            'full_path': request.full_path,
+            'args': dict(request.args),
+            'qs': request.query_string.decode('utf-8', errors='ignore'),
+            'env_keys': [k for k in request.environ.keys() if k.startswith(('HTTP_', 'VERCEL', 'PATH', 'SCRIPT', 'RAW', 'REQUEST')) and 'SECRET' not in k and 'KEY' not in k],
+            'matched_path': request.environ.get('HTTP_X_MATCHED_PATH'),
+            'forwarded_uri': request.environ.get('HTTP_X_FORWARDED_URI'),
+            'now_route_matches': request.environ.get('HTTP_X_NOW_ROUTE_MATCHES'),
+        })
     return render_template('index.html')
 
 
