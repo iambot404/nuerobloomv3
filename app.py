@@ -404,14 +404,21 @@ def upload_profile_photo():
         return jsonify({'status': 'error', 'error': str(e)}), 500
 
 
+@app.route('/favicon.ico')
+def favicon():
+    return ('', 204)
+
+
 @app.route('/')
+@app.route('/api/index')
+@app.route('/api/index.py')
 def home():
     return render_template('index.html')
 
 
 @app.route('/signin')
 def signin():
-    return render_template('signin.html')
+    return redirect(url_for('login'))
 
 
 @app.route('/signup')
