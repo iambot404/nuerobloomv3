@@ -3,8 +3,63 @@ import os
 from db import get_connection, get_db_connection, DBError
 from assessment_routes import register_assessment_routes
 
+from urllib.parse import parse_qs, urlencode
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev-secret-change-me')
+
+
+# WSGI Middleware to correct PATH_INFO when Vercel serverless rewrites route requests
+class VercelPathFix:
+    def __init__(self, wsgi_app):
+        self.wsgi_app = wsgi_app
+
+    def __call__(self, environ, start_response):
+        path_info = environ.get('PATH_INFO', '')
+
+        # 1. Check if Vercel passed original path via __vercel_route or path query param
+        qs = environ.get('QUERY_STRING', '')
+        if '__vercel_route' in qs or 'path=' in qs:
+            params = parse_qs(qs, keep_blank_values=True)
+            route_vals = params.pop('__vercel_route', None) or params.pop('path', None)
+            if route_vals and route_vals[0] and route_vals[0] not in (':path*', '/:path*'):
+                route = route_vals[0]
+                if not route.startswith('/'):
+                    route = '/' + route
+                if len(route) > 1 and route.endswith('/'):
+                    route = route.rstrip('/')
+            else:
+                route = '/'
+            # Reconstruct clean QUERY_STRING without internal param
+            environ['QUERY_STRING'] = urlencode(params, doseq=True)
+            environ['PATH_INFO'] = route
+            return self.wsgi_app(environ, start_response)
+
+        # 2. Check if Vercel proxy headers passed original request path
+        forwarded = (
+            environ.get('HTTP_X_FORWARDED_URI') or
+            environ.get('RAW_URI') or
+            environ.get('REQUEST_URI')
+        )
+        if forwarded and forwarded not in ('/api/index', '/api/index.py', '/api', '/api/'):
+            clean_path = forwarded.split('?')[0]
+            environ['PATH_INFO'] = clean_path if clean_path else '/'
+        elif path_info in ('/api/index', '/api/index.py', '/api', '/api/'):
+            environ['PATH_INFO'] = '/'
+        elif path_info.startswith('/api/index/'):
+            environ['PATH_INFO'] = path_info[len('/api/index'):] or '/'
+        elif path_info.startswith('/api/index.py/'):
+            environ['PATH_INFO'] = path_info[len('/api/index.py'):] or '/'
+
+        return self.wsgi_app(environ, start_response)
+
+
+# Apply ProxyFix for correct protocol and host headers behind Vercel reverse proxy
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1)
+
+# Apply VercelPathFix to handle rewritten URL routing
+app.wsgi_app = VercelPathFix(app.wsgi_app)
 
 # Register assessment routes
 register_assessment_routes(app)
@@ -414,17 +469,6 @@ def favicon():
 @app.route('/api/index')
 @app.route('/api/index.py')
 def home():
-    if request.args.get('debug') == '1':
-        return jsonify({
-            'path': request.path,
-            'full_path': request.full_path,
-            'args': dict(request.args),
-            'qs': request.query_string.decode('utf-8', errors='ignore'),
-            'env_keys': [k for k in request.environ.keys() if k.startswith(('HTTP_', 'VERCEL', 'PATH', 'SCRIPT', 'RAW', 'REQUEST')) and 'SECRET' not in k and 'KEY' not in k],
-            'matched_path': request.environ.get('HTTP_X_MATCHED_PATH'),
-            'forwarded_uri': request.environ.get('HTTP_X_FORWARDED_URI'),
-            'now_route_matches': request.environ.get('HTTP_X_NOW_ROUTE_MATCHES'),
-        })
     return render_template('index.html')
 
 
