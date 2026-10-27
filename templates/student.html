@@ -55,30 +55,7 @@
         </div>
     </aside>
 
-        <!-- Class/Faculty Setup Modal (shown if not configured) -->
-        <div id="setupModal" class="setup-modal" style="display:none;">
-            <div class="setup-modal-content">
-                <div class="setup-header">
-                    <h2>Complete Your Profile</h2>
-                    <p>Please configure your class and faculty to proceed</p>
-                </div>
-                <form id="setupForm" class="setup-form">
-                    <div class="form-group">
-                        <label for="setupClass">Class/Semester <span class="required">*</span></label>
-                        <input type="text" id="setupClass" name="class" placeholder="e.g., B.Tech - 3rd Semester" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="setupFaculty">Faculty <span class="required">*</span></label>
-                        <select id="setupFaculty" name="faculty_id" required>
-                            <option value="">Select Faculty</option>
-                        </select>
-                    </div>
-                    <div class="setup-actions">
-                        <button type="submit" class="btn-setup-complete">Complete Setup</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+
 
     <!-- Main content area -->
     <main class="content">
@@ -193,10 +170,6 @@
                         <label>Class</label>
                         <p id="displayClass">-</p>
                     </div>
-                    <div class="info-card">
-                        <label>Faculty</label>
-                        <p id="displayFaculty">-</p>
-                    </div>
                 </div>
                 <button id="changePasswordViewBtn" class="btn-change-password">Change Password</button>
             </div>
@@ -219,12 +192,6 @@
                     <div class="form-group">
                         <label for="editClass">Class</label>
                         <input type="text" id="editClass" name="class" placeholder="e.g., B.Tech - 3rd Semester">
-                    </div>
-                    <div class="form-group">
-                        <label for="editFaculty">Faculty</label>
-                        <select id="editFaculty" name="faculty_id">
-                            <option value="">Select Faculty</option>
-                        </select>
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn-save">Save Changes</button>
@@ -695,7 +662,6 @@
         updateGreeting();
         updateDateTime();
         loadStatistics();
-        checkProfileCompletion();
         
         // Update time every minute
         setInterval(updateDateTime, 60000);
@@ -750,47 +716,19 @@
                 document.getElementById('displayContact').textContent = data.contact || '-';
                 document.getElementById('displayRole').textContent = data.role || 'Student';
                 document.getElementById('displayClass').textContent = data.class || '-';
-                document.getElementById('displayFaculty').textContent = data.faculty_name || '-';
                 
                 // Fill form fields
                 document.getElementById('editName').value = data.name || '';
                 document.getElementById('editEmail').value = data.email || '';
                 document.getElementById('editContact').value = data.contact || '';
                 document.getElementById('editClass').value = data.class || '';
-                document.getElementById('editFaculty').value = data.faculty_id || '';
             }
         } catch (error) {
             console.error('Failed to load student info:', error);
         }
     }
 
-    // Load faculties for dropdown
-    async function loadFaculties() {
-        try {
-            const response = await fetch('/api/faculties', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include'
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                const facultySelect = document.getElementById('editFaculty');
-                facultySelect.innerHTML = '<option value="">Select Faculty</option>';
-                
-                if (data.faculties && Array.isArray(data.faculties)) {
-                    data.faculties.forEach(faculty => {
-                        const option = document.createElement('option');
-                        option.value = faculty.id;
-                        option.textContent = faculty.name;
-                        facultySelect.appendChild(option);
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('Failed to load faculties:', error);
-        }
-    }
+
 
     // Toggle between dashboard and class section
     classLink.addEventListener('click', (e) => {
@@ -805,101 +743,11 @@
         changePasswordMode.style.display = 'none';
     });
 
-    // Check if student profile is complete on page load
-    async function checkProfileCompletion() {
-        try {
-            const response = await fetch('/api/student-info', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include'
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                
-                // If class or faculty is missing, show setup modal
-                if (!data.class || !data.faculty_id) {
-                    document.getElementById('setupModal').style.display = 'flex';
-                    loadFacultiesForSetup();
-                    
-                    // Disable assessment link until setup is complete
-                    document.querySelector('a[href="/assessments"]').addEventListener('click', (e) => {
-                        e.preventDefault();
-                        alert('Please complete your profile setup first!');
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('Failed to check profile completion:', error);
-        }
-    }
-
-    // Load faculties for setup modal
-    async function loadFacultiesForSetup() {
-        try {
-            const response = await fetch('/api/faculties', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include'
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                const facultySelect = document.getElementById('setupFaculty');
-                facultySelect.innerHTML = '<option value="">Select Faculty</option>';
-                
-                if (data.faculties && Array.isArray(data.faculties)) {
-                    data.faculties.forEach(faculty => {
-                        const option = document.createElement('option');
-                        option.value = faculty.id;
-                        option.textContent = faculty.name;
-                        facultySelect.appendChild(option);
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('Failed to load faculties for setup:', error);
-        }
-    }
-
-    // Handle setup form submission
-    const setupForm = document.getElementById('setupForm');
-    setupForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const formData = {
-            class: document.getElementById('setupClass').value,
-            faculty_id: document.getElementById('setupFaculty').value
-        };
-
-        try {
-            const response = await fetch('/api/setup-profile', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(formData)
-            });
-
-            if (response.ok) {
-                alert('Profile setup completed! You can now access assessments.');
-                document.getElementById('setupModal').style.display = 'none';
-                loadStudentInfo();
-            } else {
-                const error = await response.json();
-                alert('Error: ' + (error.error || 'Failed to complete setup'));
-            }
-        } catch (error) {
-            console.error('Error completing setup:', error);
-            alert('Failed to complete setup');
-        }
-    });
-
     // Edit button functionality
     editToggleBtn.addEventListener('click', () => {
         viewMode.style.display = 'none';
         editMode.style.display = 'block';
         changePasswordMode.style.display = 'none';
-        loadFaculties();
     });
 
     // Cancel edit
@@ -917,8 +765,7 @@
             name: document.getElementById('editName').value,
             email: document.getElementById('editEmail').value,
             contact: document.getElementById('editContact').value,
-            class: document.getElementById('editClass').value,
-            faculty_id: document.getElementById('editFaculty').value
+            class: document.getElementById('editClass').value
         };
 
         try {

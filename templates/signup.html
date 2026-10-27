@@ -36,165 +36,84 @@
   <div class="category-wrapper">
     <!-- Left Text Section -->
     <div class="category-text">
-      <h5 class="step">...</h5>
-      <h2 class="title">Registration Category</h2>
+      <h5 class="step">GET STARTED</h5>
+      <h2 class="title">Create Your DocHub Account</h2>
       <p class="desc">
-        Select the category you would like to apply for: <strong>Student</strong> or <strong>Faculty</strong>.
+        Join our comprehensive cognitive assessment and personalized learning support platform.
       </p>
 
-      <p class="info">
-        You can register under only one category. Choosing the wrong category may require restarting the registration process.
-        <br><br>
-        Please note: Applications are available only for authorized regions and institutions.
-      </p>
+      <div class="info">
+        <p style="margin-bottom: 10px; font-weight: 700; color: #FFFFFF;">✨ Platform Features:</p>
+        <ul style="padding-left: 20px; line-height: 1.8; list-style-type: disc;">
+          <li>Multi-dimensional screening for Dyslexia, Dysgraphia, and Dyscalculia</li>
+          <li>Instant AI neural clinical insights and severity profiling</li>
+          <li>Personalized accommodations, learning exercises, and progress tracking</li>
+        </ul>
+      </div>
     </div>
 
-    <!-- Right Selection Cards -->
-    <div class="category-selection">
-      <div class="card-section">
-        <div class="category-card" id="studentCard">
-          <div class="category-image">
-            <img src="{{ url_for('static', filename='imgs/student.gif') }}" alt="Student">
-          </div>
-          <div class="category-overlay">Student</div>
-        </div>
+    <!-- Right Registration Form Card -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 40px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);">
+      <h2 style="font-size: 1.75rem; font-weight: 800; color: #FFFFFF; margin-bottom: 8px;">Register</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem;">Enter your details to create your learning account</p>
 
-        <div class="category-card" id="facultyCard">
-          <div class="category-image">
-            <img src="{{ url_for('static', filename='imgs/teacher.gif') }}" alt="Faculty">
-          </div>
-          <div class="category-overlay">Faculty</div>
-        </div>
+      {% if error %}
+      <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #EF4444; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 0.88rem;">
+        {{ error }}
       </div>
+      {% endif %}
 
-      <button id="continueBtn" class="continue-btn" disabled>Continue</button>
+      <form action="/signup" method="POST" class="auth-form" id="studentForm">
+        <input type="text" name="name" placeholder="Full Name" required autocomplete="name">
+        <input type="email" name="email" placeholder="Email address" required autocomplete="email">
+        <input type="password" id="student_password" name="password" placeholder="Password" required autocomplete="new-password">
+        <input type="password" id="student_confirm_password" name="confirm_password" placeholder="Confirm Password" required autocomplete="new-password">
+        <p id="studentPasswordError" class="error-text" style="min-height: 20px;"></p>
+        <input type="tel" name="contact" placeholder="Contact Number (optional)">
+        <button type="submit" class="submit-btn" id="studentSubmitBtn">Create Account</button>
+      </form>
+
+      <p style="color: var(--text-secondary); margin-top: 24px; font-size: 0.95rem; text-align: center;">
+        Already have an account? <a href="/login" style="color: #A78BFA; text-decoration: none; font-weight: 600;">Sign In</a>
+      </p>
     </div>
   </div>
 </main>
 
-<!-- 🔹 Faculty Registration Popup Modal -->
-<div id="facultyModal" class="modal">
-  <div class="modal-content">
-    <span class="close-btn">&times;</span>
-    <h2>Faculty Registration</h2>
-    <form action="/faculty_register" method="POST" class="faculty-form" id="facultyForm">
-       
-      <input type="text" name="name" placeholder="Full Name" required>
-      <input type="email" name="email" placeholder="Email" required>
-      <input type="password" id="password" name="password" placeholder="Password" required>
-      <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required>
-      <p id="passwordError" class="error-text"></p>
-       
-      <input type="tel" name="contact" placeholder="Contact Number" required>
-      <button type="submit" class="submit-btn" id="submitBtn">Register</button>
-    </form>
-  </div>
-</div>
-
-
-
-<!-- 🔹 Student Registration Popup Modal -->
-<div id="studentModal" class="modal">
-  <div class="modal-content">
-    <span class="close-btn student-close">&times;</span>
-    <h2>Student Registration</h2>
-    <form action="/student_register" method="POST" class="faculty-form" id="studentForm">
-      <input type="text" name="name" placeholder="Full Name" required>
-      <input type="email" name="email" placeholder="Email" required>
-      <input type="password" id="student_password" name="password" placeholder="Password" required>
-      <input type="password" id="student_confirm_password" name="confirm_password" placeholder="Confirm Password" required>
-      <p id="studentPasswordError" class="error-text"></p>
-      <input type="tel" name="contact" placeholder="Contact Number" required>
-      <button type="submit" class="submit-btn" id="studentSubmitBtn">Register</button>
-    </form>
-  </div>
-</div>
-
-
 <script>
-  const studentCard = document.getElementById('studentCard');
-  const facultyCard = document.getElementById('facultyCard');
-  const continueBtn = document.getElementById('continueBtn');
-
-  const facultyModal = document.getElementById('facultyModal');
-  const studentModal = document.getElementById('studentModal');
-
-  const closeBtn = document.querySelector('.close-btn');
-  const facultyCloseBtn = document.querySelector('.close-btn');
-  const studentCloseBtn = document.querySelector('.student-close');
-
-  const passwordInput = document.getElementById('password');
-  const confirmPasswordInput = document.getElementById('confirm_password');
-  const passwordError = document.getElementById('passwordError');
-  const submitBtn = document.getElementById('submitBtn');
-
   const studentPasswordInput = document.getElementById('student_password');
   const studentConfirmPasswordInput = document.getElementById('student_confirm_password');
   const studentPasswordError = document.getElementById('studentPasswordError');
   const studentSubmitBtn = document.getElementById('studentSubmitBtn');
 
-  let selected = null;
-
-  function selectCard(card) {
-    [studentCard, facultyCard].forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
-    selected = card.id;
-    continueBtn.disabled = false;
-  }
-
-  studentCard.onclick = () => selectCard(studentCard);
-  facultyCard.onclick = () => selectCard(facultyCard);
-
-  continueBtn.onclick = () => {
-    if (selected === 'studentCard') {
-      studentModal.style.display = 'flex';
-    } else if (selected === 'facultyCard') {
-      facultyModal.style.display = 'flex';
-    }
-  };
-
-  // Close modals
-  facultyCloseBtn.onclick = () => facultyModal.style.display = 'none';
-  studentCloseBtn.onclick = () => studentModal.style.display = 'none';
-  window.onclick = (event) => {
-    if (event.target === facultyModal) facultyModal.style.display = 'none';
-    if (event.target === studentModal) studentModal.style.display = 'none';
-  };
-
-  // Password validation function
-  function validatePasswords(passInput, confirmInput, errorText, btn) {
-    const password = passInput.value.trim();
-    const confirm = confirmInput.value.trim();
+  function validatePasswords() {
+    const password = studentPasswordInput.value.trim();
+    const confirm = studentConfirmPasswordInput.value.trim();
     const regexStrong = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
 
     if (!password || !confirm) {
-      errorText.textContent = '';
-      btn.disabled = false;
+      studentPasswordError.textContent = '';
+      studentSubmitBtn.disabled = false;
       return;
     }
 
     if (!regexStrong.test(password)) {
-      errorText.textContent = '⚠️ Password must be at least 8 characters, include uppercase, lowercase, number, and special character';
-      errorText.style.color = 'red';
-      btn.disabled = true;
+      studentPasswordError.textContent = '⚠️ Password must be at least 8 characters, include uppercase, lowercase, number, and special character';
+      studentPasswordError.style.color = '#EF4444';
+      studentSubmitBtn.disabled = true;
     } else if (password !== confirm) {
-      errorText.textContent = '⚠️ Passwords do not match';
-      errorText.style.color = 'red';
-      btn.disabled = true;
+      studentPasswordError.textContent = '⚠️ Passwords do not match';
+      studentPasswordError.style.color = '#EF4444';
+      studentSubmitBtn.disabled = true;
     } else {
-      errorText.textContent = '✅ Password is strong and matches';
-      errorText.style.color = 'green';
-      btn.disabled = false;
+      studentPasswordError.textContent = '✅ Password is strong and matches';
+      studentPasswordError.style.color = '#10B981';
+      studentSubmitBtn.disabled = false;
     }
   }
 
-  // Faculty password validation
-  passwordInput.addEventListener('input', () => validatePasswords(passwordInput, confirmPasswordInput, passwordError, submitBtn));
-  confirmPasswordInput.addEventListener('input', () => validatePasswords(passwordInput, confirmPasswordInput, passwordError, submitBtn));
-
-  // Student password validation
-  studentPasswordInput.addEventListener('input', () => validatePasswords(studentPasswordInput, studentConfirmPasswordInput, studentPasswordError, studentSubmitBtn));
-  studentConfirmPasswordInput.addEventListener('input', () => validatePasswords(studentPasswordInput, studentConfirmPasswordInput, studentPasswordError, studentSubmitBtn));
+  studentPasswordInput.addEventListener('input', validatePasswords);
+  studentConfirmPasswordInput.addEventListener('input', validatePasswords);
 </script>
 
 {% endblock %}

@@ -823,11 +823,9 @@ function showError(message) {
 
 // Navigate back to dashboard based on user role
 function goToDashboard() {
-    const userRole = '{{ session.get("role") }}';
-    if (userRole === 'student') {
+    const userId = '{{ session.get("user_id", "") }}';
+    if (userId) {
         window.location.href = '/student-dashboard';
-    } else if (userRole === 'faculty') {
-        window.location.href = '/faculty-dashboard';
     } else {
         window.location.href = '/';
     }

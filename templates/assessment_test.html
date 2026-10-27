@@ -66,10 +66,8 @@
             ← Back to Dashboard
         </button>
         <span style="color: #999; font-size: 12px;">
-            {% if session.get('role') == 'student' %}
+            {% if session.get('user_id') %}
             Student Dashboard
-            {% elif session.get('role') == 'faculty' %}
-            Faculty Dashboard
             {% endif %}
         </span>
     </div>
@@ -555,11 +553,9 @@
 
     // Navigate back to dashboard based on user role
     function goToDashboard() {
-        const userRole = '{{ session.get("role") }}';
-        if (userRole === 'student') {
+        const userId = '{{ session.get("user_id", "") }}';
+        if (userId) {
             window.location.href = '/student-dashboard';
-        } else if (userRole === 'faculty') {
-            window.location.href = '/faculty-dashboard';
         } else {
             window.location.href = '/';
         }

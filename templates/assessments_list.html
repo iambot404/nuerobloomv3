@@ -96,17 +96,10 @@
 
     <div class="ag-nav-actions">
       {% if is_authenticated %}
-        {% if user_role == 'faculty' %}
-          <a href="/faculty" class="ag-user-pill">
-            <span class="ag-status-dot"></span>
-            <span>Faculty Portal</span>
-          </a>
-        {% else %}
-          <a href="/student-profile" class="ag-user-pill">
-            <span class="ag-status-dot"></span>
-            <span>My Profile</span>
-          </a>
-        {% endif %}
+        <a href="/student-profile" class="ag-user-pill">
+          <span class="ag-status-dot"></span>
+          <span>My Profile</span>
+        </a>
         <a href="/logout" class="ag-btn ag-btn-sm ag-btn-ghost">Logout</a>
       {% else %}
         <a href="/login" class="ag-btn ag-btn-sm ag-btn-ghost">Login</a>

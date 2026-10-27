@@ -231,6 +231,7 @@ body {
   margin-bottom: 24px;
 }
 
+.auth-form input,
 .faculty-form input {
   width: 100%;
   padding: 14px 16px;
@@ -244,6 +245,7 @@ body {
   transition: all var(--transition-fast);
 }
 
+.auth-form input:focus,
 .faculty-form input:focus {
   border-color: var(--accent-violet);
   box-shadow: 0 0 12px rgba(124, 58, 237, 0.35);

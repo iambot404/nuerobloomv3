@@ -90,9 +90,6 @@ function populateProfileData(data) {
 
     if (document.getElementById('displayFaculty')) {
         document.getElementById('displayFaculty').textContent = profile.faculty_name || '-';
-        console.log('✓ displayFaculty updated to:', document.getElementById('displayFaculty').textContent);
-    } else {
-        console.warn('✗ displayFaculty element NOT found!');
     }
 
     // Fill forms
@@ -630,8 +627,8 @@ async function updatePersonalInfo() {
 
 // Update academic information
 async function updateAcademicInfo() {
-    const classValue = document.getElementById('class').value.trim();
-    const facultyId = document.getElementById('faculty').value;
+    const classInput = document.getElementById('class');
+    const classValue = classInput ? classInput.value.trim() : '';
 
     try {
         const response = await fetch('/api/student/profile', {
@@ -640,8 +637,7 @@ async function updateAcademicInfo() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                class: classValue,
-                faculty_id: facultyId || null
+                class: classValue
             })
         });
 
@@ -1228,8 +1224,8 @@ async function updatePersonalInfo() {
 
 // Update academic information
 async function updateAcademicInfo() {
-    const classValue = document.getElementById('class').value.trim();
-    const facultyId = document.getElementById('faculty').value;
+    const classInput = document.getElementById('class');
+    const classValue = classInput ? classInput.value.trim() : '';
 
     try {
         const response = await fetch('/api/student/profile', {
@@ -1238,8 +1234,7 @@ async function updateAcademicInfo() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                class: classValue,
-                faculty_id: facultyId || null
+                class: classValue
             })
         });
 
